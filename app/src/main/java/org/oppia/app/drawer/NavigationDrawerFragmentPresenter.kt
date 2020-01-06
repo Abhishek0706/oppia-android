@@ -6,6 +6,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
@@ -14,6 +15,7 @@ import org.oppia.app.R
 import org.oppia.app.fragment.FragmentScope
 import org.oppia.app.help.HelpActivity
 import org.oppia.app.home.HomeActivity
+import org.oppia.app.profile.ProfileActivity
 import javax.inject.Inject
 
 /** The presenter for [NavigationDrawerFragment]. */
@@ -43,6 +45,9 @@ class NavigationDrawerFragmentPresenter @Inject constructor(
         NavigationDrawerItem.HELP -> {
           Intent(fragment.activity, HelpActivity::class.java)
         }
+        NavigationDrawerItem.SWITCH_PROFILE -> {
+          Intent(fragment.activity, ProfileActivity::class.java)
+        }
       }
       fragment.activity!!.startActivity(intent)
       fragment.activity!!.finish()
@@ -62,6 +67,9 @@ class NavigationDrawerFragmentPresenter @Inject constructor(
       }
       NavigationDrawerItem.HELP -> {
         navView.menu.getItem(NavigationDrawerItem.HELP.ordinal).isChecked = true
+      }
+      NavigationDrawerItem.SWITCH_PROFILE -> {
+        navView.menu.getItem(NavigationDrawerItem.SWITCH_PROFILE.ordinal).isChecked = false
       }
     }
     this.drawerLayout = drawerLayout
@@ -89,7 +97,20 @@ class NavigationDrawerFragmentPresenter @Inject constructor(
   }
 
   override fun onNavigationItemSelected(menuItem: MenuItem): Boolean {
-    openActivityByMenuItemId(menuItem.itemId)
+    if (NavigationDrawerItem.valueFromNavId(menuItem.itemId) == NavigationDrawerItem.SWITCH_PROFILE) {
+      AlertDialog.Builder(fragment.requireContext(), R.style.AlertDialogTheme)
+        .setMessage(R.string.home_activity_back_dialog_message)
+        .setNegativeButton(R.string.home_activity_back_dialog_cancel) { dialog, _ ->
+          dialog.dismiss()
+          drawerLayout.closeDrawers()
+        }
+        .setPositiveButton(R.string.home_activity_back_dialog_exit) { _, _ ->
+          openActivityByMenuItemId(menuItem.itemId)
+        }.create().show()
+      return false
+    } else {
+      openActivityByMenuItemId(menuItem.itemId)
+    }
     return true
   }
 }
